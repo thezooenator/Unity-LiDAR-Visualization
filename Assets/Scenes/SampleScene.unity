@@ -408,6 +408,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   filePath: Assets/LiDAR/lidar_data.csv
   obstaclePrefab: {fileID: 663568691}
+  playbackSpeed: 0.05
+  autoPlay: 1
 --- !u!4 &442657269
 Transform:
   m_ObjectHideFlags: 0
@@ -596,11 +598,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3715325564500355186, guid: 29784f35180eb4f02b6baa7e4a2b8f6c, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.25
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 3715325564500355186, guid: 29784f35180eb4f02b6baa7e4a2b8f6c, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.25
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 3715325564500355186, guid: 29784f35180eb4f02b6baa7e4a2b8f6c, type: 3}
       propertyPath: m_LocalPosition.x

@@ -1,6 +1,7 @@
+using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System.IO;
+using UnityEngine;
 using UnityEngine.UI;
 
 
@@ -13,20 +14,45 @@ public class LiDAR_Vis : MonoBehaviour
 
     // Define Public and Private Variables
     public string filePath = "Assets/LiDAR/lidar_data.csv";
-    public GameObject obstaclePrefab;
-    private List<GameObject> spawnedObstacles = new List<GameObject>();
+    public GameObject obstaclePrefab; 
+    
+    
+    public float playbackSpeed = 0.05f; // seconds between lines
+    public bool autoPlay = true;
+    private bool endOfFile = false; // indicates if the end is reached
+    private Coroutine playbackCoroutine;
 
+    private List<GameObject> spawnedObstacles = new List<GameObject>();
+    private List<string> csvLines = new List<string>();
+    private int currentLineIndex = 0;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        PopulateObstacles();
+        // Read all lines from the CSV file at once
+        csvLines = new List<string>(File.ReadAllLines(filePath));
+
+        if (autoPlay)
+        {
+            playbackCoroutine = StartCoroutine(PlayLines());
+        }    
     }
 
-    // Called once each new frame of lidar data
-    void PopulateObstacles()
+    IEnumerator PlayLines()
     {
+        while (!endOfFile)
+        {
+            PopulateObstacles();
+            yield return new WaitForSeconds(playbackSpeed);
+        }
+    }
+
+
+// Called once each new frame of lidar data
+void PopulateObstacles()
+    {
+
         // Remove previous obstacles
         foreach (var obj in spawnedObstacles)
         {
@@ -34,12 +60,16 @@ public class LiDAR_Vis : MonoBehaviour
         }
         spawnedObstacles.Clear();
 
-        // Read CSV
-        var lines = File.ReadAllLines(filePath);
-        Debug.Log($"CSV has been read.");
 
-        // Handle each line
-        var line = lines[0]; // READ ONLY ONE LINE FOR NOW
+        //// Read CSV
+        //var lines = File.ReadAllLines(filePath);
+        //Debug.Log($"CSV has been read.");
+
+        //// Handle each line
+        //var line = lines[0]; // READ ONLY ONE LINE FOR NOW
+
+        string line = csvLines[currentLineIndex];
+        currentLineIndex++; 
 
 
         // Handle a single line
@@ -108,11 +138,15 @@ public class LiDAR_Vis : MonoBehaviour
 
 
 
-    /*
+    
     // Update is called once per frame
     void Update()
     {
-
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            // Populate obstacles when space is pressed
+            PopulateObstacles();
+        }
     }
-    */
+    
 }
