@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using UnityEngine.UI;
 
 
 /*
@@ -65,33 +66,44 @@ public class LiDAR_Vis : MonoBehaviour
           $"range_min: {range_min}, range_max: {range_max} ");
 
 
-        int testing_count = 0;
-
         // Loop through ranges
         float current_angle = angle_min;
-        List<List<float>> data = new List<List<float>>(); // Col 0 = angle,  Col 1 = Distance
+        var data = new List<(float angle, float distance)>(); // Tuple: (angle, distance)
         int count = 10; // STARTER VALUE IS 10
-        while (current_angle < angle_max)
+        
+        // Temporarily using 138 as limit on DATA
+        while (current_angle < angle_max && count < parts.Length && count < 138)
         {
-            float dist = float.Parse(parts[count]);
+            // Attempt to parse the distance value
+            bool parsed = float.TryParse(parts[count], out float dist);
+            bool isValidDist = parsed && !float.IsInfinity(dist) && dist >= range_min && dist <= range_max;
 
-            if (dist > range_max || dist < range_min)
+            if (isValidDist)
             {
-                // Do something if doesn't meet range?
-                Debug.Log($"Outside ranges: {dist}");
-            }
-            else
-            {
-                data[count][0] = current_angle; // Angle (rad)
-                data[count][1] = dist; // Distance (m)
+                data.Add((current_angle, dist)); // Only add valid points on the scan
             }
 
-            testing_count++;
             count++;
-
             current_angle += angle_increment;
         }
         Debug.Log($"ENDED! Current angle: {current_angle} $Next Value: {parts[count]}");
+
+
+        // Create obstacles from data
+        foreach (var (angle, dist) in data)
+        {
+            // Calculate position 
+            // TODO  make sure angle is correct (sin vs cos)
+            float x = (dist * Mathf.Cos(angle));
+            float z = (dist * Mathf.Sin(angle));
+            Vector3 position = new Vector3(x, (float)0.5, z);
+
+            // Create the obstacle GameObject  
+            GameObject obstacle = Instantiate(obstaclePrefab, position, Quaternion.identity);
+            spawnedObstacles.Add(obstacle);
+        }
+        
+          
     }
 
 
