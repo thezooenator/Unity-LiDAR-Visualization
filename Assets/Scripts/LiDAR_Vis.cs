@@ -33,6 +33,9 @@ public class LiDAR_Vis : MonoBehaviour
         // Read all lines from the CSV file at once
         csvLines = new List<string>(File.ReadAllLines(filePath));
 
+        // Skip first line which contains headers (in this case)
+        currentLineIndex = 1;
+
         if (autoPlay)
         {
             playbackCoroutine = StartCoroutine(PlayLines());
@@ -61,10 +64,10 @@ void PopulateObstacles()
         spawnedObstacles.Clear();
 
 
+        //// OLD READ PER LINE
         //// Read CSV
         //var lines = File.ReadAllLines(filePath);
         //Debug.Log($"CSV has been read.");
-
         //// Handle each line
         //var line = lines[0]; // READ ONLY ONE LINE FOR NOW
 
@@ -76,21 +79,20 @@ void PopulateObstacles()
         var parts = line.Split(',');
         Debug.Log($"Line has {parts.Length} parts.");
 
-        int header = int.Parse(parts[0]);
-        long timestampNs = long.Parse(parts[1]);
-        string frame_id = parts[2];
+        long timestamp = long.Parse(parts[0]);
+        string frame_id = parts[1];
 
-        float angle_min = float.Parse(parts[3]); // start angle of the scan [rad]
-        float angle_max = float.Parse(parts[4]); // end angle of the scan [rad]
-        float angle_increment = float.Parse(parts[5]); // angular distance between measurements [rad]
-        float time_increment = float.Parse(parts[6]); // time between measurements [seconds] - if your scanner
+        float angle_min = float.Parse(parts[2]); // start angle of the scan [rad]
+        float angle_max = float.Parse(parts[3]); // end angle of the scan [rad]
+        float angle_increment = float.Parse(parts[4]); // angular distance between measurements [rad]
+        float time_increment = float.Parse(parts[5]); // time between measurements [seconds] - if your scanner
                                                       // is moving, this will be used in interpolating position
                                                       // of 3d points
-        float scan_time = float.Parse(parts[7]); // time between scans [seconds]
-        float range_min = float.Parse(parts[8]); // minimum range value [m]
-        float range_max = float.Parse(parts[9]); // maximum range value [m]
+        float scan_time = float.Parse(parts[6]); // time between scans [seconds]
+        float range_min = float.Parse(parts[7]); // minimum range value [m]
+        float range_max = float.Parse(parts[8]); // maximum range value [m]
 
-        Debug.Log($"Header: {header}, Timestamp (ns): {timestampNs}, Frame: {frame_id}, " +
+        Debug.Log($"Timestamp (ns): {timestamp}, Frame: {frame_id}, " +
           $"angle_min: {angle_min}, angle_max: {angle_max}, angle_increment: {angle_increment}, " +
           $"time_increment: {time_increment}, scan_time: {scan_time}, " +
           $"range_min: {range_min}, range_max: {range_max} ");
@@ -99,10 +101,10 @@ void PopulateObstacles()
         // Loop through ranges
         float current_angle = angle_min;
         var data = new List<(float angle, float distance)>(); // Tuple: (angle, distance)
-        int count = 10; // STARTER VALUE IS 10
-        
-        // Temporarily using 138 as limit on DATA
-        while (current_angle < angle_max && count < parts.Length && count < 138)
+        int count = 9; // STARTER VALUE IS 9
+
+
+        while (current_angle < angle_max)
         {
             // Attempt to parse the distance value
             bool parsed = float.TryParse(parts[count], out float dist);
@@ -111,12 +113,13 @@ void PopulateObstacles()
             if (isValidDist)
             {
                 data.Add((current_angle, dist)); // Only add valid points on the scan
+                //Debug.Log($"Count: {count}, Angle: {current_angle}, Distance: {parts[count]}");
             }
 
             count++;
             current_angle += angle_increment;
         }
-        Debug.Log($"ENDED! Current angle: {current_angle} $Next Value: {parts[count]}");
+        Debug.Log($"ENDED!");
 
 
         // Create obstacles from data
