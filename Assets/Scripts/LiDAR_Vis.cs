@@ -7,7 +7,14 @@ using UnityEngine.UI;
 
 /*
 * Creates and destroys game objects from a set CSV
-* In the future it will 
+* In the future it will possibly work for rosbag .db3 files
+* 
+* Requires a CSV file with the following format:
+* Row 1: header row
+* Row 2+: Full LiDAR scans (1 scan per row)
+* 
+* Columns 1-9: timestamp,frame_id,angle_min,angle_max,angle_increment,time_increment,scan_time,range_min,range_max
+* Columns 10+: range_0,range_1,range_2... range_n
 */
 public class LiDAR_Vis : MonoBehaviour
 {
@@ -55,6 +62,12 @@ public class LiDAR_Vis : MonoBehaviour
 // Called once each new frame of lidar data
 void PopulateObstacles()
     {
+        if (currentLineIndex >= csvLines.Count)
+        {
+            endOfFile = true;
+            Debug.Log("End of LiDAR playback reached.");
+            return;
+        }
 
         // Remove previous obstacles
         foreach (var obj in spawnedObstacles)
@@ -79,7 +92,7 @@ void PopulateObstacles()
         var parts = line.Split(',');
         Debug.Log($"Line has {parts.Length} parts.");
 
-        long timestamp = long.Parse(parts[0]);
+        float timestamp = float.Parse(parts[0]);
         string frame_id = parts[1];
 
         float angle_min = float.Parse(parts[2]); // start angle of the scan [rad]
